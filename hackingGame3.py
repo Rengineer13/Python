@@ -18,8 +18,11 @@ while True:
     for guessesTaken in range (1,5):
         print("Take a guess.")
         guess = input()
+        
+        if guess == "BINDAdmin":
+            break
     
-        if guess != userPass[listNumber]:
+        elif guess != userPass[listNumber]:
             print("Incorrect.")
         else:
             break

@@ -6,7 +6,9 @@
 import cv2, time, pandas 
 # importing datetime class from datetime library 
 from datetime import datetime 
-  
+
+import time as true_time
+
 # Assigning our static_back to None 
 static_back = None
   
@@ -56,16 +58,34 @@ while True:
     # Finding contour of moving object 
     cnts,_ = cv2.findContours(thresh_frame.copy(),  
                        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) 
-  
+
+    blue_x = 450
+    blue_y = 275
+    blue_w = blue_x + 150
+    blue_h = blue_y + 100
+    # Adjust comparison value ( < n) relative to the size of the object within the frame
+    # Larger N means larger object
     for contour in cnts: 
-        if cv2.contourArea(contour) < 10000: 
+        if cv2.contourArea(contour) < 200: 
             continue
         motion = 1
   
         (x, y, w, h) = cv2.boundingRect(contour) 
-        # making green rectangle around the moving object 
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3) 
-  
+        # making green rectangle around the moving object
+        if (x > blue_x and x < blue_w) and (y>blue_y and y<blue_h):
+            oldtime = true_time.time()
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 3)
+
+            if true_time.time() - oldtime > 3:
+                cv2.imwrite("ALERT", frame)
+                print("Too close!")
+        else: 
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
+        
+        
+
+    cv2.rectangle(frame, (blue_x,blue_y),(blue_w,blue_h), (255,0,0), 3)
+    
     # Appending status of motion 
     motion_list.append(motion) 
   
@@ -80,7 +100,7 @@ while True:
         time.append(datetime.now()) 
   
     # Displaying image in gray_scale 
-    cv2.imshow("Gray Frame", gray) 
+    #cv2.imshow("Gray Frame", gray) 
   
     # Displaying the difference in currentframe to 
     # the staticframe(very first_frame) 
@@ -88,7 +108,7 @@ while True:
   
     # Displaying the black and white image in which if 
     # intensity difference greater than 30 it will appear white 
-    cv2.imshow("Threshold Frame", thresh_frame) 
+    #cv2.imshow("Threshold Frame", thresh_frame) 
   
     # Displaying color frame with contour of motion of object 
     cv2.imshow("Color Frame", frame) 
@@ -96,17 +116,20 @@ while True:
     key = cv2.waitKey(1) 
     # if q entered whole process will stop 
     if key == ord('q'): 
-        # if something is movingthen it append the end time of movement 
+        # if something is moving then it append the end time of movement 
         if motion == 1: 
             time.append(datetime.now()) 
         break
-  
+
+
+
+
 # Appending time of motion in DataFrame 
-for i in range(0, len(time), 2): 
-    df = df.append({"Start":time[i], "End":time[i + 1]}, ignore_index = True) 
+#for i in range(0, len(time), 2): 
+#    df = df.append({"Start":time[i], "End":time[i + 1]}, ignore_index = True) 
   
 # Creating a CSV file in which time of movements will be saved 
-df.to_csv("Time_of_movements.csv") 
+# df.to_csv("Time_of_movements.csv") 
   
 video.release() 
   
